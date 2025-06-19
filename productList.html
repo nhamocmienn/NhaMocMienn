@@ -32,6 +32,17 @@
       <input type="text" id="editPrice" placeholder="Giá sản phẩm" required>
       <textarea id="editDesc" placeholder="Mô tả sản phẩm"></textarea>
 
+      <div>
+  <label>Số lượng theo size:</label><br>
+  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+    <div><label>Size S:</label><input type="number" id="sizeS" min="0" value="0"></div>
+    <div><label>Size M:</label><input type="number" id="sizeM" min="0" value="0"></div>
+    <div><label>Size L:</label><input type="number" id="sizeL" min="0" value="0"></div>
+    <div><label>Size XL:</label><input type="number" id="sizeXL" min="0" value="0"></div>
+  </div>
+</div>
+
+
       <label for="editImages">Ảnh mới:</label>
       <input type="file" id="editImages" accept="image/*" multiple>
 
@@ -121,6 +132,12 @@ card.innerHTML = `
         document.getElementById("editType").value = p.type;
         document.getElementById("editPrice").value = p.price;
         document.getElementById("editDesc").value = p.desc;
+        const q = p.quantity || {};
+document.getElementById("sizeS").value = q.S || 0;
+document.getElementById("sizeM").value = q.M || 0;
+document.getElementById("sizeL").value = q.L || 0;
+document.getElementById("sizeXL").value = q.XL || 0;
+
 
         existingImages = [...(p.images || [])];
         renderEditImagePreview();
@@ -179,6 +196,14 @@ card.innerHTML = `
             uploadedUrls.push(data.secure_url);
           }
         }
+
+        updated.quantity = {
+  S: parseInt(document.getElementById("sizeS").value) || 0,
+  M: parseInt(document.getElementById("sizeM").value) || 0,
+  L: parseInt(document.getElementById("sizeL").value) || 0,
+  XL: parseInt(document.getElementById("sizeXL").value) || 0
+};
+
 
         updated.images = uploadedUrls;
 
