@@ -9,23 +9,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <form id="productForm">
-    <header class="logo-header">
-      <img src="images/img1.jpg" alt="Logo" class="logo-img">
-      <h1 class="logo-title">Thêm sản phẩm</h1>
-    </header>
+  <div class="page-container">
+        <header class="navbar">
+        <img src="images/img1.jpg" alt="Logo" class="logo-img" />
+        <nav class="nav-menu">
+          <ul>
+            <li><a href="productList.html">Danh sách sản phẩm</a></li>
+            <li><a href="addProduct.html" class="active">Thêm sản phẩm</a></li>
+            <li><a href="list.html">Danh sách lời chúc</a></li>
+          </ul>
+        </nav>
+        <!-- <div class="navbar-right">
+          <a href="#"><span class="search-icon">&#128269;</span></a>
+        </div> -->
+      </header>
+      <form id="productForm">
+        <!-- <header class="logo-header">
+          <img src="images/img1.jpg" alt="Logo" class="logo-img">
+          <h1 class="logo-title">Thêm sản phẩm</h1>
+        </header> -->
 
-    <label for="productName">Tên sản phẩm:</label>
-    <input type="text" id="productName" required class="animation" placeholder="Nhập tên sản phẩm">
+        <label for="productName">Tên sản phẩm:</label>
+        <input type="text" id="productName" required class="animation" placeholder="Nhập tên sản phẩm">
 
-    <label for="productType">Loại sản phẩm:</label>
-    <select id="productType" class="animation">
-      <option value="chinh">Sản phẩm chính</option>
-      <option value="phu">Sản phẩm phụ</option>
-    </select>
+        <label for="productType">Loại sản phẩm:</label>
+        <select id="productType" class="animation">
+          <option value="chinh">Sản phẩm chính</option>
+          <option value="phu">Sản phẩm phụ</option>
+        </select>
 
-    <label for="productPrice">Giá sản phẩm:</label>
-    <input type="text" id="productPrice" required class="animation" placeholder="VD: 100000">
+        <label for="productPrice">Giá sản phẩm:</label>
+        <input type="text" id="productPrice" required class="animation" placeholder="VD: 100000">
 
     <label>Số lượng theo size:</label>
 <div id="sizeQuantities">
@@ -47,22 +61,24 @@
   </div>
 </div>
 
-    <label for="productDesc">Mô tả:</label>
-    <textarea id="productDesc" rows="4" placeholder="Mô tả chi tiết sản phẩm..." class="animation"></textarea>
+        <label for="productDesc">Mô tả:</label>
+        <textarea id="productDesc" rows="4" placeholder="Mô tả chi tiết sản phẩm..." class="animation"></textarea>
 
-    <label for="productImages">Hình ảnh sản phẩm:</label>
-    <input type="file" id="productImages" multiple accept="image/*">
-    <div id="fileList"></div>
+        <label for="productImages">Hình ảnh sản phẩm:</label>
+        <input type="file" id="productImages" multiple accept="image/*">
+        <div id="fileList"></div>
 
-    <button type="submit">📦 Thêm sản phẩm</button>
+        <button type="submit">📦 Thêm sản phẩm</button>
 
-    <div id="progressContainer">
-      <div id="progressText">🖼️ Đang tải ảnh ...</div>
-      <progress id="progressBar" value="0" max="100"></progress>
-    </div>
+        <div id="progressContainer">
+          <div id="progressText">🖼️ Đang tải ảnh ...</div>
+          <progress id="progressBar" value="0" max="100"></progress>
+        </div>
 
-    <p class="error" id="errorMsg"></p>
-  </form>
+        <p class="error" id="errorMsg"></p>
+      </form>
+  </div>
+  
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
