@@ -78,19 +78,27 @@
           const card = document.createElement("div");
           card.className = "product-card";
 
-          card.innerHTML = `
-            <img src="${product.images?.[0] || 'https://via.placeholder.com/150'}" alt="ảnh" class="product-img">
-            <div class="product-info">
-              <h3>${product.name}</h3>
-              <p><strong>Loại:</strong> ${product.type}</p>
-              <p><strong>Giá:</strong> ${product.price} đ</p>
-              <p>${product.desc}</p>
-              <div class="action-buttons">
-                <button onclick="editProduct('${id}')">✏️ Sửa</button>
-                <button onclick="deleteProduct('${id}')">🗑️ Xóa</button>
-              </div>
-            </div>
-          `;
+          const quantityInfo = product.quantity
+  ? Object.entries(product.quantity)
+      .map(([size, qty]) => `<li>Size ${size}: ${qty}</li>`)
+      .join("")
+  : "<li>Không có thông tin size</li>";
+
+card.innerHTML = `
+  <img src="${product.images?.[0] || 'https://via.placeholder.com/150'}" alt="ảnh" class="product-img">
+  <div class="product-info">
+    <h3>${product.name}</h3>
+    <p><strong>Loại:</strong> ${product.type}</p>
+    <p><strong>Giá:</strong> ${product.price} đ</p>
+    <p>${product.desc}</p>
+    <ul class="size-list">${quantityInfo}</ul>
+    <div class="action-buttons">
+      <button onclick="editProduct('${id}')">✏️ Sửa</button>
+      <button onclick="deleteProduct('${id}')">🗑️ Xóa</button>
+    </div>
+  </div>
+`;
+
           productList.appendChild(card);
         });
       });
