@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      margin: 0;
+      background: #fff0f5;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d63384;
+    }
+
+    .container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .left-column {
+      flex: 2;
+    }
+
+    .right-column {
+      flex: 1;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+
+    .cart-info {
+      flex: 1;
+    }
+
+    .qty-controls button {
+      padding: 4px 8px;
+      margin: 0 5px;
+      font-size: 16px;
+    }
+
+    .total {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 20px;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    .section label {
+      font-weight: 600;
+    }
+
+    input[type="text"], input[type="tel"], textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .addon-list .addon-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .addon-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .addon-info {
+      flex: 1;
+    }
+
+    .checkout-btn {
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    .checkout-btn:hover {
+      background-color: #d81b60;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🛒 Giỏ hàng của bạn</h1>
+
+  <div class="container">
+    <div class="left-column">
+      <div id="cartContainer"></div>
+      <div class="total" id="totalAmount">Tổng: 0 đ</div>
+
+      <div class="section addon-list">
+        <label>Sản phẩm phụ:</label>
+        <div id="addonList"></div>
+      </div>
+    </div>
+
+    <div class="right-column">
+      <div class="section">
+        <label>Dịch vụ:</label><br>
+        <label><input type="radio" name="service" value="self" checked> Mua cho bản thân</label><br>
+        <label><input type="radio" name="service" value="gift"> Quà tặng</label>
+      </div>
+
+      <div class="section">
+        <label>Họ và tên:</label>
+        <input type="text" id="buyerName">
+
+        <label>Số điện thoại:</label>
+        <input type="tel" id="buyerPhone">
+
+        <label>Địa chỉ:</label>
+        <input type="text" id="buyerAddress">
+
+        <label>Ghi chú:</label>
+        <textarea id="buyerNote" rows="3" placeholder="Ghi chú thêm nếu có..."></textarea>
+      </div>
+
+      <button class="checkout-btn" onclick="checkout()">🧾 Đặt hàng</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.appspot.com",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const cartContainer = document.getElementById("cartContainer");
+    const totalAmount = document.getElementById("totalAmount");
+    const addonList = document.getElementById("addonList");
+
+    function loadCart() {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      cartContainer.innerHTML = "";
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div class="cart-info">
+            <div><strong>${item.name}</strong></div>
+            <div>${item.price} đ</div>
+          </div>
+          <div class="qty-controls">
+            <button onclick="updateQty(${index}, -1)">-</button>
+            <span>${item.qty}</span>
+            <button onclick="updateQty(${index}, 1)">+</button>
+          </div>
+        `;
+        cartContainer.appendChild(div);
+        total += item.price * item.qty;
+      });
+
+      document.querySelectorAll(".addon-list input:checked").forEach(cb => {
+        total += parseInt(cb.dataset.price);
+      });
+
+      totalAmount.textContent = `Tổng: ${total.toLocaleString()} đ`;
+    }
+
+    function updateQty(index, delta) {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadCart();
+    }
+
+    function loadAddons() {
+      db.ref("products").orderByChild("type").equalTo("phu").once("value", snapshot => {
+        const data = snapshot.val();
+        addonList.innerHTML = "";
+        if (!data) return;
+        Object.entries(data).forEach(([id, item]) => {
+          const addon = document.createElement("div");
+          addon.className = "addon-item";
+          addon.innerHTML = `
+            <input type="checkbox" data-name="${item.name}" data-price="${item.price}">
+            <img src="${item.images?.[0] || ''}" alt="${item.name}">
+            <div class="addon-info">
+              <div><strong>${item.name}</strong> (+${parseInt(item.price).toLocaleString()}đ)</div>
+              <small>${item.desc || ''}</small>
+            </div>
+          `;
+          addonList.appendChild(addon);
+        });
+
+        document.querySelectorAll(".addon-list input").forEach(cb => {
+          cb.addEventListener("change", loadCart);
+        });
+      });
+    }
+
+    function checkout() {
+      const name = document.getElementById("buyerName").value;
+      const phone = document.getElementById("buyerPhone").value;
+      const address = document.getElementById("buyerAddress").value;
+
+      if (!name || !phone || !address) {
+        alert("Vui lòng nhập đầy đủ thông tin người mua!");
+        return;
+      }
+
+      alert("✅ Đặt hàng thành công!\nCảm ơn bạn đã mua hàng tại Nhà Mộc Miên.");
+      localStorage.removeItem("cart");
+      loadCart();
+    }
+
+    loadAddons();
+    loadCart();
+  </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+ * {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+ body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(to right, #ffe3e3, #fff0f5);
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+       overflow-y: auto;
+    }
+
+    form {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #e91e63;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    textarea,
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    textarea {
+  width: 100%;
+  padding: 10px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+
+    button {
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #d81b60;
+    }
+
+    #loading {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #fileList {
+      margin-top: 10px;
+    }
+
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 5px 10px;
+      margin-bottom: 5px;
+      border-radius: 6px;
+    }
+
+    .file-item button {
+      background: transparent;
+      border: none;
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(5px);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-content h3 {
+      color: #4caf50;
+      margin-bottom: 10px;
+    }
+
+    .modal-content button {
+      margin-top: 20px;
+      background-color: #e91e63;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .animation{
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0.5);
+    border-radius: 0 15px 0 15px;
+    box-shadow: 0 5px 4px rgba(0,0,0,0.4);
+    transition: 1s;
+}
+
+.animation:focus{
+    background: rgba(255,255,255,0.7);
+    border-radius: 20px 0 20px 0;
+}
+
+#progressContainer {
+    display: none;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  #progressText {
+    font-family: 'Quicksand', sans-serif;
+    color: #d63384;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  #progressBar {
+    width: 100%;
+    height: 14px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  #progressBar::-webkit-progress-bar {
+    background-color: #ffe6ec;
+    border-radius: 10px;
+  }
+
+  #progressBar::-webkit-progress-value {
+    background-color: #f8b6c1;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  #progressBar::-moz-progress-bar {
+    background-color: #f8b6c1;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  .logo-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  justify-content: center;
+}
+
+.logo-img {
+  height: 100px;
+  width: auto;
+   transition: transform 0.3s ease;
+}
+
+.logo-title {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.logo-img:hover {
+  transform: scale(1.05);
+}
+
+   @media (max-width: 500px) {
+  body {
+    padding: 10px;
+  }
+
+  form {
+    padding: 20px 15px;
+    border-radius: 12px;
+  }
+
+  input[type="text"],
+  textarea,
+  input[type="file"] {
+    font-size: 15px;
+  }
+
+  button {
+    font-size: 15px;
+    padding: 10px;
+     touch-action: manipulation;
+  }
+
+  .modal-content {
+    width: 90%;
+    max-width: 95%;
+    padding: 20px;
+  }
+
+   .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .file-item button {
+    align-self: flex-end;
+    margin-top: 5px;
+  }
+}
+

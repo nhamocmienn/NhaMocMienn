@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách lời chúc</title>
+  <link rel="stylesheet" href="styles_list.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 70px 10px 10px; /* chừa khoảng trống cho filter fixed */
+      background-color: #fff0f5;
+      margin: 0;
+    }
+    h2 {
+      text-align: center;
+      color: #d63384;
+      margin-top: 0;
+    }
+    #filterContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #ffe6ef;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 999;
+      text-align: center;
+    }
+    #filterContainer input {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .message-item {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 10px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    button {
+      margin: 5px 5px 5px 0;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: #ffb3d1;
+      color: #000;
+      cursor: pointer;
+    }
+    .media-container {
+      margin-top: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    video, audio {
+      width: 100%;
+      max-width: 100%;
+      max-height: 280px;
+    }
+    .timestamp {
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 8px;
+    }
+    .contact-link {
+  display: inline-block;
+  word-break: break-all;
+  max-width: 100%;
+  color: #333;
+  font-weight: 500;
+}
+
+button {
+  margin: 5px 5px 5px 0;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ffb3d1;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #ff80bf;
+  transform: scale(1.05);
+}
+
+
+    @media (max-width: 600px) {
+      button {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>💌 Danh sách lời chúc</h2>
+  <div id="filterContainer">
+    📅 Lọc theo ngày: <input type="date" id="dateFilter">
+  </div>
+  <div id="loading">⏳ Đang tải dữ liệu...</div>
+  <ul id="messageList"></ul>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.firebasestorage.app",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const messageList = document.getElementById("messageList");
+    const loading = document.getElementById("loading");
+    const dateFilter = document.getElementById("dateFilter");
+
+    function renderMessages(snapshot) {
+      messageList.innerHTML = "";
+      loading.style.display = "none";
+
+      let count = 0;
+
+      snapshot.forEach(child => {
+        const data = child.val();
+
+        if (dateFilter.value) {
+          const selectedDate = new Date(dateFilter.value);
+          const msgDate = new Date(data.timestamp);
+          if (msgDate.toDateString() !== selectedDate.toDateString()) return;
+        }
+
+        count++;
+
+        const li = document.createElement("li");
+        li.className = "message-item";
+
+        let fileButtonsHTML = "";
+        if (Array.isArray(data.files)) {
+          data.files.forEach((fileUrl, idx) => {
+            const fileType = fileUrl.includes(".mp4") || fileUrl.includes("video") ? "video" :
+                             fileUrl.includes(".mp3") || fileUrl.includes("audio") ? "audio" : "other";
+            fileButtonsHTML += `<button onclick="showFile(this, '${fileUrl}', '${fileType}')">📎 File ${idx + 1}</button>`;
+          });
+        }
+
+        li.innerHTML = `
+          <b>STT ${count}:</b> <b>${data.sender}</b> gửi đến <b>${data.receiver}</b><br>
+          <i>Liên hệ:</i> <span class="contact-link">${data.contact}</span>
+          <button onclick="copyToClipboard('${data.contact}', this)">📋 Copy</button><br><br>
+
+          <button onclick="showMessage(this, \`${escapeHtml(data.message)}\`)">📨 Xem lời nhắn</button>
+          ${fileButtonsHTML}
+          <div class="media-container"></div>
+          <div class="timestamp">🕒 ${new Date(data.timestamp).toLocaleString()}</div>
+        `;
+
+        messageList.appendChild(li);
+      });
+    }
+
+    db.ref("messages").on("value", snapshot => renderMessages(snapshot), error => {
+      loading.textContent = "❌ Lỗi khi tải dữ liệu.";
+      console.error("Firebase load error:", error);
+    });
+
+    dateFilter.addEventListener("change", () => {
+      db.ref("messages").once("value").then(renderMessages);
+    });
+
+    function showFile(button, url, type) {
+      const container = button.parentElement.querySelector(".media-container");
+      container.innerHTML = "";
+
+      let media;
+       if (type === "video") {
+    media = document.createElement("video");
+    media.src = url;
+    media.controls = true;
+  } else if (type === "audio") {
+    media = document.createElement("audio");
+    media.src = url;
+    media.controls = true;
+  } else if (url.match(/\.(jpeg|jpg|png|gif)$/i)) {
+    media = document.createElement("img");
+    media.src = url;
+    media.style.maxWidth = "100%";
+    media.style.borderRadius = "8px";
+  } else {
+    media = document.createElement("a");
+    media.href = url;
+    media.textContent = "📥 Tải file";
+    media.target = "_blank";
+  }
+
+      media.style.display = "block";
+      media.style.marginTop = "10px";
+      container.appendChild(media);
+
+// Thêm nút tải xuống nếu không phải là thẻ <a> (vì <a> đã là link tải)
+if (type === "video" || type === "audio" || media.tagName === "IMG") {
+  const downloadBtn = document.createElement("button");
+  downloadBtn.textContent = "⬇️ Tải xuống";
+  downloadBtn.onclick = async () => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `file-${Date.now()}`;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      alert("❌ Không thể tải file.");
+      console.error(err);
+    }
+  };
+  container.appendChild(downloadBtn);
+}
+
+
+    }
+
+    function showMessage(button, msg) {
+      const container = button.parentElement.querySelector(".media-container");
+      container.innerHTML = "";
+
+      const messageDiv = document.createElement("div");
+      messageDiv.style.marginTop = "10px";
+      messageDiv.style.padding = "10px";
+      messageDiv.style.backgroundColor = "#fff0f5";
+      messageDiv.style.border = "1px solid #d63384";
+      messageDiv.style.borderRadius = "8px";
+      messageDiv.textContent = msg;
+
+      container.appendChild(messageDiv);
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;")
+                 .replace(/\n/g, "\\n");
+    }
+   
+    function copyToClipboard(text, button) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Thay đổi màu và nội dung nút
+    const originalText = button.textContent;
+    button.textContent = "✅ Đã sao chép";
+    button.style.backgroundColor = "#d63384";
+    button.style.color = "white";
+    button.style.transition = "all 0.3s ease";
+
+    // Trở lại bình thường sau 2 giây
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.style.backgroundColor = "#ffb3d1";
+      button.style.color = "#000";
+    }, 2000);
+  }).catch(err => {
+    console.error(err);
+  });
+}
+
+
+  </script>
+</body>
+</html>

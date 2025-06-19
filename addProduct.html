@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thêm sản phẩm</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="add-product.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <form id="productForm">
+    <header class="logo-header">
+      <img src="images/img1.jpg" alt="Logo" class="logo-img">
+      <h1 class="logo-title">Thêm sản phẩm</h1>
+    </header>
+
+    <label for="productName">Tên sản phẩm:</label>
+    <input type="text" id="productName" required class="animation" placeholder="Nhập tên sản phẩm">
+
+    <label for="productType">Loại sản phẩm:</label>
+    <select id="productType" class="animation">
+      <option value="chinh">Sản phẩm chính</option>
+      <option value="phu">Sản phẩm phụ</option>
+    </select>
+
+    <label for="productPrice">Giá sản phẩm:</label>
+    <input type="text" id="productPrice" required class="animation" placeholder="VD: 100000">
+
+    <label for="productQuantity">Số lượng:</label>
+    <input type="number" id="productQuantity" class="animation" placeholder="Nhập số lượng" min="0" required>
+
+    <label for="productDesc">Mô tả:</label>
+    <textarea id="productDesc" rows="4" placeholder="Mô tả chi tiết sản phẩm..." class="animation"></textarea>
+
+    <label for="productImages">Hình ảnh sản phẩm:</label>
+    <input type="file" id="productImages" multiple accept="image/*">
+    <div id="fileList"></div>
+
+    <button type="submit">📦 Thêm sản phẩm</button>
+
+    <div id="progressContainer">
+      <div id="progressText">🖼️ Đang tải ảnh ...</div>
+      <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+
+    <p class="error" id="errorMsg"></p>
+  </form>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.firebasestorage.app",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const productForm = document.getElementById("productForm");
+    const fileInput = document.getElementById("productImages");
+    const fileListDiv = document.getElementById("fileList");
+    const errorMsg = document.getElementById("errorMsg");
+    const progressBar = document.getElementById("progressBar");
+    const progressContainer = document.getElementById("progressContainer");
+
+    let selectedFiles = [];
+
+    fileInput.addEventListener("change", () => {
+      const newFiles = Array.from(fileInput.files);
+      const seen = new Set(selectedFiles.map(f => f.name + f.size));
+      newFiles.forEach(file => {
+        const key = file.name + file.size;
+        if (!seen.has(key)) {
+          selectedFiles.push(file);
+          seen.add(key);
+        }
+      });
+
+      const dt = new DataTransfer();
+      selectedFiles.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+
+      updateFileList();
+    });
+
+    function updateFileList() {
+      fileListDiv.innerHTML = "";
+      selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const item = document.createElement("div");
+          item.className = "file-item";
+          item.innerHTML = `
+            <img src="${e.target.result}" alt="preview">
+            <button onclick="removeFile(${index})">×</button>
+          `;
+          fileListDiv.appendChild(item);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      const dt = new DataTransfer();
+      selectedFiles.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+      updateFileList();
+    }
+
+    productForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      progressContainer.style.display = "block";
+      progressBar.value = 10;
+      errorMsg.textContent = "";
+
+      const name = document.getElementById("productName").value.trim();
+      const type = document.getElementById("productType").value;
+      const price = document.getElementById("productPrice").value.trim();
+      const quantity = parseInt(document.getElementById("productQuantity").value.trim()) || 0;
+      const desc = document.getElementById("productDesc").value.trim();
+
+      if (!name || !price) {
+        errorMsg.textContent = "Vui lòng nhập đầy đủ tên và giá sản phẩm.";
+        progressContainer.style.display = "none";
+        return;
+      }
+
+      try {
+        const uploadedUrls = [];
+        let uploadedCount = 0;
+
+        for (const file of selectedFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", "demo_unsigned");
+
+          const res = await fetch("https://api.cloudinary.com/v1_1/dddplwb0o/image/upload", {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await res.json();
+          if (!data.secure_url) throw new Error("Tải ảnh thất bại.");
+          uploadedUrls.push(data.secure_url);
+
+          uploadedCount++;
+          progressBar.value = 10 + Math.floor((uploadedCount / selectedFiles.length) * 80);
+        }
+
+        await db.ref("products").push({
+          name,
+          type,
+          price,
+          quantity,
+          desc,
+          images: uploadedUrls,
+          createdAt: new Date().toISOString()
+        });
+
+        productForm.reset();
+        selectedFiles = [];
+        updateFileList();
+        alert("✅ Thêm sản phẩm thành công!");
+        progressBar.value = 100;
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "Có lỗi xảy ra khi thêm sản phẩm.";
+      }
+
+      setTimeout(() => progressContainer.style.display = "none", 1000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Lời yêu thương</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <form id="messageForm">
+      <header class="logo-header">
+  <img src="images/img1.jpg" alt="Logo Thương Hiệu" class="logo-img">
+  <h1 class="logo-title">Lời nhắn</h1>
+      </header>
+    <label for="senderName">Người gửi:</label>
+    <input type="text" id="senderName" class="animation" placeholder="Tên bạn (hoặc để trống nếu ẩn danh)">
+    <label><input type="checkbox" id="anonymous"> Gửi ẩn danh</label>
+
+    <label for="receiverName">Người nhận:</label>
+    <input type="text" id="receiverName" class="animation" required placeholder="Tên người nhận">
+
+    <label for="receiverContact">Liên hệ (SĐT, Facebook, Zalo...):</label>
+    <input type="text" id="receiverContact" class="animation" required placeholder="VD: facebook.com/nguoinhan">
+
+    <label for="messageText">Lời nhắn:</label>
+    <textarea id="messageText" required placeholder="Viết lời nhắn của bạn tại đây..."></textarea>
+
+    <label for="storyText">Câu chuyện bạn muốn chia sẻ cho chúng tôi:</label>
+    <textarea id="storyText" rows="4" placeholder="(Không bắt buộc) Chia sẻ thêm về hoàn cảnh, ý nghĩa lời nhắn..."></textarea>
+
+    <label for="mediaFile">File âm thanh / video / hình ảnh:</label>
+    <input type="file" id="mediaFile" accept="audio/*,video/*,image/*" multiple>
+    <div id="fileList"></div>
+
+    <button type="submit" id="sendBtn">🎁 Gửi lời nhắn </button>
+    <div id="progressContainer">
+  <div id="progressText">🎁 Đang gửi lời nhắn ...</div>
+  <progress id="progressBar" value="0" max="100"></progress>
+</div>
+    <p class="error" id="errorMsg"></p>
+  </form>
+
+  <!-- Modal gửi thành công -->
+<div class="modal" id="successModal">
+  <div class="modal-content">
+    <h3>🎉 Gửi lời nhắn thành công!</h3>
+    <p>Lời nhắn của bạn sẽ đến đích trong 24h💖</p>
+    <button onclick="closeModal()">Đóng</button>
+    <br><br>
+    <button onclick="goToShopHomePage()">🎁 Bạn muốn dành tặng món quà cho người bạn gửi lời nhắn không?</button>
+  </div>
+</div>
+
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.firebasestorage.app",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const form = document.getElementById("messageForm");
+    const sendBtn = document.getElementById("sendBtn");
+    const progressBar = document.getElementById("progressBar");
+    const errorMsg = document.getElementById("errorMsg");
+    const fileInput = document.getElementById("mediaFile");
+    const fileListDiv = document.getElementById("fileList");
+    const successModal = document.getElementById("successModal");
+
+    let selectedFiles = [];
+
+    fileInput.addEventListener("change", () => {
+      const newFiles = Array.from(fileInput.files);
+      selectedFiles = selectedFiles.concat(newFiles);
+
+      const seen = new Set();
+      selectedFiles = selectedFiles.filter(file => {
+        const key = file.name + file.size;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      const dt = new DataTransfer();
+      selectedFiles.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+
+      updateFileList();
+    });
+
+    function updateFileList() {
+      fileListDiv.innerHTML = "";
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement("div");
+        item.className = "file-item";
+        item.innerHTML = `
+          <span>${file.name}</span>
+          <button onclick="removeFile(${index})">✖</button>
+        `;
+        fileListDiv.appendChild(item);
+      });
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      const dt = new DataTransfer();
+      selectedFiles.forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
+      updateFileList();
+    }
+
+    function closeModal() {
+      successModal.style.display = "none";
+    }
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      sendBtn.disabled = true;
+      document.getElementById("progressContainer").style.display = "block";
+      progressBar.value = 10;
+      errorMsg.textContent = "";
+
+      const sender = document.getElementById("anonymous").checked ? "Ẩn danh" : document.getElementById("senderName").value.trim();
+      const receiver = document.getElementById("receiverName").value.trim();
+      const contact = document.getElementById("receiverContact").value.trim();
+      const message = document.getElementById("messageText").value.trim();
+      const story = document.getElementById("storyText").value.trim();
+
+      if (!receiver || !message || !contact) {
+        errorMsg.textContent = "Vui lòng điền đầy đủ thông tin bắt buộc.";
+        sendBtn.disabled = false;
+        document.getElementById("progressContainer").style.display = "none";
+
+        return;
+      }
+
+      try {
+        const uploadedUrls = [];
+        let uploadedCount = 0;
+
+        for (const file of selectedFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", "demo_unsigned");
+
+          const res = await fetch("https://api.cloudinary.com/v1_1/dddplwb0o/auto/upload", {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await res.json();
+          if (!data.secure_url) throw new Error("Tải file lên thất bại.");
+          uploadedUrls.push(data.secure_url);
+
+          uploadedCount++;
+          progressBar.value = 10 + Math.floor((uploadedCount / selectedFiles.length) * 80); // up to 90%
+        }
+
+        const newMsgRef = db.ref("messages").push();
+        await newMsgRef.set({
+          sender,
+          receiver,
+          contact,
+          message,
+           story,
+          files: uploadedUrls,
+          timestamp: new Date().toISOString()
+        });
+
+        progressBar.value = 100;
+
+        form.reset();
+        fileListDiv.innerHTML = "";
+        selectedFiles = [];
+        successModal.style.display = "flex";
+      } catch (error) {
+        console.error(error);
+        errorMsg.textContent = "Đã có lỗi xảy ra. Vui lòng thử lại.";
+      }
+
+      sendBtn.disabled = false;
+      setTimeout(() => progressBar.style.display = "none", 500);
+    });
+
+     function goToShopHomePage() {
+    window.location.href = "ShopHomePage.html";
+  }
+  </script>
+</body>
+</html>

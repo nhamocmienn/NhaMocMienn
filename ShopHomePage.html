@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trang Bán Hàng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Quicksand', sans-serif;
+      background: #fff0f5;
+    }
+
+    .shop-header {
+      position: relative;
+      background-color: #fff;
+    }
+
+    .shop-banner {
+      width: 100%;
+      max-height: 550px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .shop-logo-wrapper {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      transition: transform 0.2s;
+      z-index: 999;
+    }
+
+    .shop-logo-wrapper:hover {
+      transform: translateY(-2px);
+    }
+
+    .shop-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .shop-title {
+      font-size: 16px;
+      color: #e91e63;
+      font-weight: 600;
+      margin-top: 8px;
+      white-space: nowrap;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 24px;
+      margin-top: 40px;
+      color: #d63384;
+    }
+
+    .product-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .product-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .main-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .thumbnails {
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .thumbnails img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .thumbnails img.active,
+    .thumbnails img:hover {
+      border-color: #e91e63;
+    }
+
+    .product-card h3, .product-card p, .product-card .desc {
+      padding: 0 12px;
+    }
+
+    .product-card h3 {
+      font-size: 18px;
+      margin: 12px 0 6px;
+      color: #333;
+    }
+
+    .product-card p {
+      font-size: 16px;
+      color: #e91e63;
+      margin-bottom: 6px;
+    }
+
+    .product-card .desc {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .add-cart-btn {
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 0 12px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .add-cart-btn:hover {
+      background-color: #d81b60;
+    }
+
+    .cart-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #e91e63;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      text-decoration: none;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s;
+    }
+
+    .cart-button:hover {
+      background-color: #d81b60;
+    }
+
+    @media (max-width: 768px) {
+      .product-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="shop-header">
+    <img src="https://scontent.fhan2-5.fna.fbcdn.net/v/t39.30808-6/508416707_122110459682898089_7726718357027816221_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=cc71e4&_nc_eui2=AeH3xu3dTGTH8-FEK5gLTGCttL332ET4fta0vffYRPh-1kUrXI1WAs1EVK5sOkVfg3rCTUds2jUYDSRVUE1p2Fqc&_nc_ohc=B4k4mLvo6MoQ7kNvwH5475M&_nc_oc=Adm-C-sqCTs1kDjb2ucSKQQKT_PkJBwGzdSQ-Uh_kQ2QkxupxfbYCZl_h_XH3keUTjduNEOhIe_UMB8oK4dydE5N&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_gid=7WRhCdHaBGvrmkd2bP-9Hw&oh=00_AfNJTkbqbT4gOj1V20yFmMK60CXM2h4ZbXj4ERnToFlNQw&oe=68599E52" alt="Ảnh bìa" class="shop-banner">
+  </header>
+
+  <div class="shop-logo-wrapper" onclick="window.open('https://www.facebook.com/nhamocmienn', '_blank')">
+    <img src="https://scontent.fhan2-5.fna.fbcdn.net/v/t39.30808-6/508649757_122109768626898089_2973652759223052767_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEYRCV6SoJhhY6ppRh-d143Be4goleGut8F7iCiV4a638cJp9nCYz8xAgDw0CIdnjpq4jPnvIUjwvGg6vlEc7Vp&_nc_ohc=SbEwjRisi9EQ7kNvwE6VBfs&_nc_oc=AdlZgV35KcGE9HRJtbxFUYygvAWGJ9CVQ61nLdruvo7w73ONrRdVG0yWGv-lC1bVU4jVn9vJoPLUUgR82Jz6SN-W&_nc_zt=23&_nc_ht=scontent.fhan2-5.fna&_nc_gid=LmPKQr1dYYYI3VuUT1J3sg&oh=00_AfMtPFI_GovTEGgqg8vphK5KR8oEUnnEGkMLBlv9urRsHg&oe=6859B380" alt="Logo Shop" class="shop-logo">
+    <h1 class="shop-title">Ghé thăm fanpage của chúng tôi</h1>
+  </div>
+
+  <main>
+    <h2 class="section-title">Sản phẩm chính</h2>
+    <div id="productList" class="product-list"></div>
+  </main>
+
+  <a href="cart.html" class="cart-button">🛒 Giỏ hàng</a>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.firebasestorage.app",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const productList = document.getElementById("productList");
+
+    function loadProducts() {
+      db.ref("products").orderByChild("type").equalTo("chinh").once("value", (snapshot) => {
+        productList.innerHTML = "";
+        const data = snapshot.val();
+        if (!data) {
+          productList.innerHTML = "<p style='text-align:center;'>Chưa có sản phẩm nào.</p>";
+          return;
+        }
+
+        Object.entries(data).forEach(([id, product]) => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+
+          const images = product.images || [];
+          const mainImage = images[0] || "https://via.placeholder.com/300x300";
+
+          card.innerHTML = `
+            <img src="${mainImage}" alt="Hình chính" class="main-image" id="main-img-${id}">
+            <div class="thumbnails">
+              ${images.map((img) => `<img src="${img}" onclick="document.getElementById('main-img-${id}').src='${img}'">`).join('')}
+            </div>
+            <h3>${product.name}</h3>
+            <p>${product.price} đ</p>
+            <div class="desc">${product.desc || ''}</div>
+            <button class="add-cart-btn" onclick="addToCart('${id}')">🛒 Thêm vào giỏ</button>
+          `;
+          productList.appendChild(card);
+        });
+      });
+    }
+
+    function addToCart(productId) {
+      db.ref("products/" + productId).once("value", (snapshot) => {
+        const product = snapshot.val();
+        if (product) {
+          const cartItem = {
+            id: productId,
+            name: product.name,
+            price: parseInt(product.price),
+            image: product.images?.[0] || '',
+            qty: 1
+          };
+          saveToCart(cartItem);
+          alert("🛒 Đã thêm vào giỏ hàng!");
+        }
+      });
+    }
+
+    function saveToCart(product) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const existing = cart.find(item => item.id === product.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push(product);
+      }
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
+
+    window.onload = loadProducts;
+  </script>
+
+  <footer style="background:#fff; padding: 20px 0; text-align:center; font-size:14px; color:#666; border-top:1px solid #eee; margin-top: 40px;">
+    <p>© 2025 Nhà Mộc Miên. All rights reserved.</p>
+    <p>Liên hệ: <a href="mailto:nhamocmien@gmail.com" style="color:#e91e63;">nhamocmien@gmail.com</a> | ĐT: 0123-456-789</p>
+  </footer>
+</body>
+</html>

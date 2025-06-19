@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách sản phẩm</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="product-list.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <main class="product-container">
+    <header class="logo-header">
+      <img src="images/img1.jpg" alt="Logo" class="logo-img">
+      <h1 class="logo-title">Danh sách sản phẩm</h1>
+    </header>
+
+    <div id="productList"></div>
+
+    <p class="error" id="errorMsg"></p>
+  </main>
+
+  <!-- Popup sửa sản phẩm -->
+  <div id="editModal" class="modal">
+    <form id="editForm" class="edit-form">
+      <h2>✏️ Sửa sản phẩm</h2>
+      <input type="text" id="editName" placeholder="Tên sản phẩm" required>
+      <select id="editType">
+        <option value="chinh">Sản phẩm chính</option>
+        <option value="phu">Sản phẩm phụ</option>
+      </select>
+      <input type="text" id="editPrice" placeholder="Giá sản phẩm" required>
+      <textarea id="editDesc" placeholder="Mô tả sản phẩm"></textarea>
+
+      <label for="editImages">Ảnh mới:</label>
+      <input type="file" id="editImages" accept="image/*" multiple>
+
+      <div id="editImagePreview" class="edit-preview"></div>
+
+      <div class="modal-buttons">
+        <button type="submit">💾 Lưu</button>
+        <button type="button" onclick="closeModal()">❌ Hủy</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.firebasestorage.app",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const productList = document.getElementById("productList");
+    let editingProductId = null;
+    let existingImages = [];
+    let newImages = [];
+
+    function loadProducts() {
+      db.ref("products").once("value", (snapshot) => {
+        productList.innerHTML = "";
+        const data = snapshot.val();
+        if (!data) {
+          productList.innerHTML = "<p>Chưa có sản phẩm nào.</p>";
+          return;
+        }
+
+        Object.entries(data).forEach(([id, product]) => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+
+          card.innerHTML = `
+            <img src="${product.images?.[0] || 'https://via.placeholder.com/150'}" alt="ảnh" class="product-img">
+            <div class="product-info">
+              <h3>${product.name}</h3>
+              <p><strong>Loại:</strong> ${product.type}</p>
+              <p><strong>Giá:</strong> ${product.price} đ</p>
+              <p>${product.desc}</p>
+              <div class="action-buttons">
+                <button onclick="editProduct('${id}')">✏️ Sửa</button>
+                <button onclick="deleteProduct('${id}')">🗑️ Xóa</button>
+              </div>
+            </div>
+          `;
+          productList.appendChild(card);
+        });
+      });
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
+        db.ref("products/" + id).remove().then(() => {
+          loadProducts();
+        });
+      }
+    }
+
+    function editProduct(id) {
+      editingProductId = id;
+      newImages = [];
+      db.ref("products/" + id).once("value", (snapshot) => {
+        const p = snapshot.val();
+        document.getElementById("editName").value = p.name;
+        document.getElementById("editType").value = p.type;
+        document.getElementById("editPrice").value = p.price;
+        document.getElementById("editDesc").value = p.desc;
+
+        existingImages = [...(p.images || [])];
+        renderEditImagePreview();
+
+        document.getElementById("editModal").style.display = "flex";
+      });
+    }
+
+    function renderEditImagePreview() {
+      const preview = document.getElementById("editImagePreview");
+      preview.innerHTML = "";
+      existingImages.forEach((url, index) => {
+        const div = document.createElement("div");
+        div.className = "img-item";
+        div.innerHTML = `
+          <img src="${url}">
+          <button onclick="removeExistingImage(${index})">×</button>
+        `;
+        preview.appendChild(div);
+      });
+    }
+
+    function removeExistingImage(index) {
+      existingImages.splice(index, 1);
+      renderEditImagePreview();
+    }
+
+    document.getElementById("editImages").addEventListener("change", (e) => {
+      newImages = Array.from(e.target.files);
+    });
+
+    document.getElementById("editForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (!editingProductId) return;
+
+      const updated = {
+        name: document.getElementById("editName").value.trim(),
+        type: document.getElementById("editType").value,
+        price: document.getElementById("editPrice").value.trim(),
+        desc: document.getElementById("editDesc").value.trim()
+      };
+
+      try {
+        let uploadedUrls = [...existingImages];
+
+        for (const file of newImages) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", "demo_unsigned");
+          const res = await fetch("https://api.cloudinary.com/v1_1/dddplwb0o/image/upload", {
+            method: "POST",
+            body: formData
+          });
+          const data = await res.json();
+          if (data.secure_url) {
+            uploadedUrls.push(data.secure_url);
+          }
+        }
+
+        updated.images = uploadedUrls;
+
+        await db.ref("products/" + editingProductId).update(updated);
+        closeModal();
+        loadProducts();
+        alert("✅ Sản phẩm đã được cập nhật!");
+      } catch (err) {
+        alert("❌ Lỗi khi cập nhật sản phẩm.");
+        console.error(err);
+      }
+    });
+
+    function closeModal() {
+      document.getElementById("editModal").style.display = "none";
+      editingProductId = null;
+      existingImages = [];
+      newImages = [];
+      document.getElementById("editForm").reset();
+      document.getElementById("editImagePreview").innerHTML = "";
+    }
+
+    window.onload = loadProducts;
+  </script>
+</body>
+</html>

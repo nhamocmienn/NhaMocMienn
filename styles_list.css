@@ -1,0 +1,45 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fff0f5;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+h2 {
+  text-align: center;
+  color: #d63384;
+  margin-top: 30px;
+}
+
+ul#messageList {
+  list-style: none;
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 0;
+}
+
+ul#messageList li {
+  background-color: #fff;
+  border-left: 6px solid #ff69b4;
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  line-height: 1.6;
+}
+
+ul#messageList li b {
+  color: #c2185b;
+}
+
+ul#messageList a {
+  color: #d63384;
+  text-decoration: underline;
+}
+
+ul#messageList hr {
+  border: 0;
+  border-top: 1px dashed #ccc;
+  margin-top: 10px;
+}
