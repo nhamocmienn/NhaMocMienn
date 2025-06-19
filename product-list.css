@@ -184,6 +184,75 @@ body {
   cursor: pointer;
 }
 
+/* Navbar tổng thể */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f5f5;
+  padding: 12px 30px;
+  font-family: 'Quicksand', sans-serif;
+  border-bottom: 1px solid #ddd;
+  max-width: 1000px;
+  margin: 20px auto;
+  border-radius: 14px;
+}
+
+/* Logo */
+.logo-img {
+  height: 60px;
+  width: auto;
+  border-radius: 10px;
+}
+
+/* Giữa - Menu */
+.nav-menu {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-menu ul {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu ul li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.nav-menu ul li a:hover {
+  background-color: #ffebf0;
+  color: #e91e63;
+}
+
+/* Phải - Icon tìm kiếm */
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  font-size: 20px;
+  color: #e91e63;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.search-icon:hover {
+  transform: scale(1.2);
+}
+
+
+
 @media (max-width: 600px) {
   .product-card {
     width: 100%;
