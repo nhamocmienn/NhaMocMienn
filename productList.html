@@ -50,7 +50,7 @@
       </select>
       <input type="text" id="editPrice" placeholder="Giá sản phẩm" required>
       <textarea id="editDesc" placeholder="Mô tả sản phẩm"></textarea>
-
+      <textarea id="editDetailDesc" placeholder="Mô tả chi tiết sản phẩm"></textarea>
       <div>
   <label>Số lượng theo size:</label><br>
   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
@@ -151,6 +151,7 @@ card.innerHTML = `
         document.getElementById("editType").value = p.type;
         document.getElementById("editPrice").value = p.price;
         document.getElementById("editDesc").value = p.desc;
+        document.getElementById("editDetailDesc").value = p.detailDesc || "";
         const q = p.quantity || {};
 document.getElementById("sizeS").value = q.S || 0;
 document.getElementById("sizeM").value = q.M || 0;
@@ -196,7 +197,8 @@ document.getElementById("sizeXL").value = q.XL || 0;
         name: document.getElementById("editName").value.trim(),
         type: document.getElementById("editType").value,
         price: document.getElementById("editPrice").value.trim(),
-        desc: document.getElementById("editDesc").value.trim()
+        desc: document.getElementById("editDesc").value.trim(),
+        detailDesc: document.getElementById("editDetailDesc").value.trim()
       };
 
       try {

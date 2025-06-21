@@ -64,6 +64,10 @@
         <label for="productDesc">Mô tả:</label>
         <textarea id="productDesc" rows="4" placeholder="Mô tả chi tiết sản phẩm..." class="animation"></textarea>
 
+        <label for="productDetailDesc">Mô tả chi tiết:</label>
+<textarea id="productDetailDesc" rows="6" placeholder="Nhập mô tả chi tiết hơn cho sản phẩm..." class="animation"></textarea>
+
+
         <label for="productImages">Hình ảnh sản phẩm:</label>
         <input type="file" id="productImages" multiple accept="image/*">
         <div id="fileList"></div>
@@ -101,6 +105,8 @@
     const errorMsg = document.getElementById("errorMsg");
     const progressBar = document.getElementById("progressBar");
     const progressContainer = document.getElementById("progressContainer");
+
+    const detailDesc = document.getElementById("productDetailDesc").value.trim();
 
     let selectedFiles = [];
 
@@ -193,14 +199,16 @@
         }
 
         await db.ref("products").push({
-          name,
-          type,
-          price,
-          quantity,
-          desc,
-          images: uploadedUrls,
-          createdAt: new Date().toISOString()
-        });
+        name,
+       type,
+      price,
+       quantity,
+       desc,
+     detailDesc,
+   images: uploadedUrls,
+       createdAt: new Date().toISOString()
+      });
+
 
         productForm.reset();
         selectedFiles = [];
