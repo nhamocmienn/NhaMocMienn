@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý đơn hàng</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      margin: 0; padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h2 { margin-bottom: 20px; }
+    .filter-group {
+      display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
+    }
+    input, select {
+      padding: 10px; border-radius: 6px;
+      border: 1px solid #ccc; font-size: 14px;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px; text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th { background-color: #f3f3f3; }
+    tr:hover { background-color: #fafafa; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      text-transform: capitalize;
+    }
+    .pending { background: #ffe0b2; color: #e65100; }
+    .paid { background: #c8e6c9; color: #2e7d32; }
+    .cancelled { background: #ffcdd2; color: #c62828; }
+  </style>
+</head>
+<body>
+ <nav class="nav-menu">
+        <ul>
+          <li><a href="productList.html">Danh sách sản phẩm</a></li>
+          <li><a href="addProduct.html">Thêm sản phẩm</a></li>
+          <li><a href="list.html">Danh sách lời chúc</a></li>
+          <li><a href="orderList.html">Danh sách order</a></li>
+        </ul>
+      </nav>
+ <button class="btn" onclick="openModal()">➕ Tạo đơn hàng mới</button>     
+<h2>📋 Danh sách đơn hàng</h2>
+
+<div class="filter-group">
+  <input type="date" id="startDate">
+  <input type="date" id="endDate">
+  <select id="statusFilter">
+    <option value="">Tất cả trạng thái</option>
+    <option value="pending">Chờ xử lý</option>
+    <option value="paid">Đã thanh toán</option>
+    <option value="cancelled">Đã hủy</option>
+  </select>
+  <button onclick="loadOrders()">🔍 Lọc đơn hàng</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mã đơn</th>
+      <th>Ngày</th>
+      <th>Trạng thái</th>
+      <th>Tổng tiền</th>
+      <th>Khách hàng</th>
+    </tr>
+  </thead>
+  <tbody id="orderTableBody">
+    <tr><td colspan="5">Đang tải dữ liệu...</td>
+    
+    </tr>
+  </tbody>
+</table>
+<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999;">
+  <div style="background:white; padding:30px; border-radius:10px; max-width:400px; width:90%;">
+    <h3>📝 Thêm đơn hàng</h3>
+    <input id="newCustomer" placeholder="Tên khách hàng" style="width:100%; margin-bottom:10px;">
+    <input id="newTotal" type="number" placeholder="Tổng tiền" style="width:100%; margin-bottom:10px;">
+    <select id="newStatus" style="width:100%; margin-bottom:20px;">
+      <option value="pending">Chờ xử lý</option>
+      <option value="paid">Đã thanh toán</option>
+      <option value="cancelled">Đã hủy</option>
+    </select>
+    <button onclick="createOrder()" class="btn">💾 Lưu</button>
+    <button onclick="closeModal()" class="btn" style="background:#888; margin-left:10px;">❌ Hủy</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+    authDomain: "loichucyeuthuong18.firebaseapp.com",
+    databaseURL: "https://loichucyeuthuong18-default-rtdb.firebaseio.com",
+    projectId: "loichucyeuthuong18",
+    storageBucket: "loichucyeuthuong18.appspot.com",
+    messagingSenderId: "434140825017",
+    appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function loadOrders() {
+    const tbody = document.getElementById("orderTableBody");
+    tbody.innerHTML = "<tr><td colspan='5'>Đang tải dữ liệu...</td></tr>";
+
+    db.ref("orders").once("value", snapshot => {
+      const all = snapshot.val();
+      const list = all ? Object.values(all) : [];
+
+      // Lọc theo ngày và trạng thái
+      const start = new Date(document.getElementById("startDate").value);
+      const end = new Date(document.getElementById("endDate").value);
+      const status = document.getElementById("statusFilter").value;
+
+      const filtered = list.filter(o => {
+        const d = new Date(o.createdAt);
+        const matchDate = (!isNaN(start) ? d >= start : true) &&
+                          (!isNaN(end) ? d <= end : true);
+        const matchStatus = status ? o.status === status : true;
+        return matchDate && matchStatus;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='5'>Không có đơn hàng nào phù hợp.</td></tr>";
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(o => `
+        <tr>
+          <td>${o.id}</td>
+          <td>${new Date(o.createdAt).toLocaleString('vi-VN')}</td>
+          <td><span class="badge ${o.status}">${o.status}</span></td>
+          <td>${o.total.toLocaleString()}đ</td>
+          <td>${o.customer?.name || 'N/A'}</td>
+        </tr>
+      `).join("");
+    });
+  }
+
+  window.onload = loadOrders;
+</script>
+<script>
+    function openModal() {
+  document.getElementById("orderModal").style.display = "flex";
+}
+function closeModal() {
+  document.getElementById("orderModal").style.display = "none";
+}
+
+function createOrder() {
+  const name = document.getElementById("newCustomer").value.trim();
+  const total = parseInt(document.getElementById("newTotal").value.trim());
+  const status = document.getElementById("newStatus").value;
+
+  if (!name || isNaN(total)) {
+    alert("Vui lòng nhập đầy đủ thông tin đơn hàng.");
+    return;
+  }
+
+  const id = "DH" + Date.now();
+  const newOrder = {
+    id,
+    customer: { name },
+    total,
+    status,
+    createdAt: new Date().toISOString(),
+    items: []
+  };
+
+  db.ref("orders/" + id).set(newOrder).then(() => {
+    alert("✅ Đã tạo đơn hàng.");
+    closeModal();
+    loadOrders();
+  });
+}
+
+function updateStatus(id, newStatus) {
+  db.ref("orders/" + id).update({ status: newStatus }).then(() => {
+    console.log(`✅ Đã cập nhật trạng thái đơn ${id} → ${newStatus}`);
+  });
+}
+
+</script>
+
+</body>
+</html>
