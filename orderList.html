@@ -2,197 +2,196 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Quản lý đơn hàng</title>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500&display=swap" rel="stylesheet">
+  <title>Danh sách đơn hàng</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Be Vietnam Pro', sans-serif;
-      margin: 0; padding: 20px;
-      background-color: #f9f9f9;
+      background: #f0f2f5;
+      padding: 20px;
+      margin: 0;
     }
-    h2 { margin-bottom: 20px; }
-    .filter-group {
-      display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
-    }
-    input, select {
-      padding: 10px; border-radius: 6px;
-      border: 1px solid #ccc; font-size: 14px;
+    h2 {
+      margin-bottom: 20px;
     }
     table {
-      width: 100%; border-collapse: collapse;
-      background-color: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     th, td {
-      padding: 12px; text-align: left;
+      padding: 12px;
       border-bottom: 1px solid #eee;
+      text-align: left;
     }
-    th { background-color: #f3f3f3; }
-    tr:hover { background-color: #fafafa; }
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      text-transform: capitalize;
+    th {
+      background: #fafafa;
     }
-    .pending { background: #ffe0b2; color: #e65100; }
-    .paid { background: #c8e6c9; color: #2e7d32; }
-    .cancelled { background: #ffcdd2; color: #c62828; }
+    select, input[type="date"] {
+      padding: 8px;
+      margin-right: 10px;
+    }
+    .filter-section {
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 8px 14px;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #c0392b;
+    }
+    .status-pending { color: orange; font-weight: bold; }
+    .status-completed { color: green; font-weight: bold; }
+    .status-paid { color: blue; font-weight: bold; }
   </style>
 </head>
 <body>
- <nav class="nav-menu">
-        <ul>
-          <li><a href="productList.html">Danh sách sản phẩm</a></li>
-          <li><a href="addProduct.html">Thêm sản phẩm</a></li>
-          <li><a href="list.html">Danh sách lời chúc</a></li>
-          <li><a href="orderList.html">Danh sách order</a></li>
-        </ul>
-      </nav>
- <button class="btn" onclick="openModal()">➕ Tạo đơn hàng mới</button>     
-<h2>📋 Danh sách đơn hàng</h2>
 
-<div class="filter-group">
-  <input type="date" id="startDate">
-  <input type="date" id="endDate">
-  <select id="statusFilter">
-    <option value="">Tất cả trạng thái</option>
-    <option value="pending">Chờ xử lý</option>
-    <option value="paid">Đã thanh toán</option>
-    <option value="cancelled">Đã hủy</option>
-  </select>
-  <button onclick="loadOrders()">🔍 Lọc đơn hàng</button>
-</div>
+  <h2>📋 Danh sách đơn hàng</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Mã đơn</th>
-      <th>Ngày</th>
-      <th>Trạng thái</th>
-      <th>Tổng tiền</th>
-      <th>Khách hàng</th>
-    </tr>
-  </thead>
-  <tbody id="orderTableBody">
-    <tr><td colspan="5">Đang tải dữ liệu...</td>
-    
-    </tr>
-  </tbody>
-</table>
-<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999;">
-  <div style="background:white; padding:30px; border-radius:10px; max-width:400px; width:90%;">
-    <h3>📝 Thêm đơn hàng</h3>
-    <input id="newCustomer" placeholder="Tên khách hàng" style="width:100%; margin-bottom:10px;">
-    <input id="newTotal" type="number" placeholder="Tổng tiền" style="width:100%; margin-bottom:10px;">
-    <select id="newStatus" style="width:100%; margin-bottom:20px;">
-      <option value="pending">Chờ xử lý</option>
+  <div class="filter-section">
+    <label>Lọc theo ngày:</label>
+    <input type="date" id="filterDate">
+    <label>Trạng thái:</label>
+    <select id="filterStatus">
+      <option value="">Tất cả</option>
+      <option value="pending">Đang chờ</option>
       <option value="paid">Đã thanh toán</option>
-      <option value="cancelled">Đã hủy</option>
+      <option value="completed">Đã hoàn thành</option>
     </select>
-    <button onclick="createOrder()" class="btn">💾 Lưu</button>
-    <button onclick="closeModal()" class="btn" style="background:#888; margin-left:10px;">❌ Hủy</button>
+    <button onclick="loadOrders()" class="btn">Lọc</button>
+    <button onclick="openAddOrderModal()" class="btn" style="margin-left: auto; float: right;">➕ Thêm đơn</button>
   </div>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
-    authDomain: "loichucyeuthuong18.firebaseapp.com",
-    databaseURL: "https://loichucyeuthuong18-default-rtdb.firebaseio.com",
-    projectId: "loichucyeuthuong18",
-    storageBucket: "loichucyeuthuong18.appspot.com",
-    messagingSenderId: "434140825017",
-    appId: "1:434140825017:web:13deda5e05e22fe2f76268"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  <table>
+    <thead>
+      <tr>
+        <th>Mã đơn</th>
+        <th>Tên khách</th>
+        <th>Địa chỉ</th>
+        <th>SDT</th>
+        <th>Phương thức</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="orderTableBody"></tbody>
+  </table>
 
-  function loadOrders() {
-    const tbody = document.getElementById("orderTableBody");
-    tbody.innerHTML = "<tr><td colspan='5'>Đang tải dữ liệu...</td></tr>";
+  <!-- Modal Thêm đơn hàng -->
+  <div id="addOrderModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:8px; width:400px;">
+      <h3>➕ Thêm đơn hàng</h3>
+      <input id="newName" placeholder="Họ tên" style="width:100%; margin-bottom:10px">
+      <input id="newAddress" placeholder="Địa chỉ" style="width:100%; margin-bottom:10px">
+      <input id="newPhone" placeholder="Số điện thoại" style="width:100%; margin-bottom:10px">
+      <select id="newPayment" style="width:100%; margin-bottom:10px">
+        <option value="cod">Thanh toán COD</option>
+        <option value="bank">Chuyển khoản</option>
+      </select>
+      <button class="btn" onclick="saveNewOrder()">Lưu đơn</button>
+      <button class="btn" style="background:#aaa; margin-left:10px" onclick="closeAddOrderModal()">Đóng</button>
+    </div>
+  </div>
 
-    db.ref("orders").once("value", snapshot => {
-      const all = snapshot.val();
-      const list = all ? Object.values(all) : [];
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
+      authDomain: "loichucyeuthuong18.firebaseapp.com",
+      databaseURL: "https://loichucyeuthuong18-default-rtdb.firebaseio.com",
+      projectId: "loichucyeuthuong18",
+      storageBucket: "loichucyeuthuong18.appspot.com",
+      messagingSenderId: "434140825017",
+      appId: "1:434140825017:web:13deda5e05e22fe2f76268"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-      // Lọc theo ngày và trạng thái
-      const start = new Date(document.getElementById("startDate").value);
-      const end = new Date(document.getElementById("endDate").value);
-      const status = document.getElementById("statusFilter").value;
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+    }
 
-      const filtered = list.filter(o => {
-        const d = new Date(o.createdAt);
-        const matchDate = (!isNaN(start) ? d >= start : true) &&
-                          (!isNaN(end) ? d <= end : true);
-        const matchStatus = status ? o.status === status : true;
-        return matchDate && matchStatus;
+    function loadOrders() {
+      const dateFilter = document.getElementById("filterDate").value;
+      const statusFilter = document.getElementById("filterStatus").value;
+      db.ref("orders").once("value").then(snapshot => {
+        const tbody = document.getElementById("orderTableBody");
+        tbody.innerHTML = "";
+        snapshot.forEach(child => {
+          const o = child.val();
+          const orderDate = new Date(o.createdAt);
+          const selectedDate = dateFilter ? new Date(dateFilter) : null;
+
+          if (selectedDate && orderDate.toDateString() !== selectedDate.toDateString()) return;
+          if (statusFilter && o.status !== statusFilter) return;
+
+          const statusText =
+            o.status === 'completed' ? 'Đã hoàn thành'
+            : o.status === 'paid' ? 'Đã thanh toán'
+            : 'Đang chờ';
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${o.id}</td>
+            <td>${o.customer.name}</td>
+            <td>${o.customer.address}</td>
+            <td>${o.customer.phone}</td>
+            <td>${o.customer.payment}</td>
+            <td class="status-${o.status}">${statusText}</td>
+            <td>${formatDate(o.createdAt)}</td>
+            <td><button class="btn" onclick="markAsCompleted('${o.id}')">✔ Hoàn tất</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
       });
+    }
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='5'>Không có đơn hàng nào phù hợp.</td></tr>";
-        return;
-      }
+    function markAsCompleted(orderId) {
+      db.ref("orders/" + orderId).update({ status: "completed" }).then(loadOrders);
+    }
 
-      tbody.innerHTML = filtered.map(o => `
-        <tr>
-          <td>${o.id}</td>
-          <td>${new Date(o.createdAt).toLocaleString('vi-VN')}</td>
-          <td><span class="badge ${o.status}">${o.status}</span></td>
-          <td>${o.total.toLocaleString()}đ</td>
-          <td>${o.customer?.name || 'N/A'}</td>
-        </tr>
-      `).join("");
-    });
-  }
+    function openAddOrderModal() {
+      document.getElementById("addOrderModal").style.display = "flex";
+    }
+    function closeAddOrderModal() {
+      document.getElementById("addOrderModal").style.display = "none";
+    }
 
-  window.onload = loadOrders;
-</script>
-<script>
-    function openModal() {
-  document.getElementById("orderModal").style.display = "flex";
-}
-function closeModal() {
-  document.getElementById("orderModal").style.display = "none";
-}
+    function saveNewOrder() {
+      const name = document.getElementById("newName").value.trim();
+      const address = document.getElementById("newAddress").value.trim();
+      const phone = document.getElementById("newPhone").value.trim();
+      const payment = document.getElementById("newPayment").value;
+      if (!name || !address || !phone || !payment) return alert("Điền đầy đủ thông tin!");
 
-function createOrder() {
-  const name = document.getElementById("newCustomer").value.trim();
-  const total = parseInt(document.getElementById("newTotal").value.trim());
-  const status = document.getElementById("newStatus").value;
+      const id = "OD" + Date.now();
+      const newOrder = {
+        id,
+        items: [],
+        customer: { name, address, phone, payment },
+        total: 0,
+        status: payment === 'bank' ? 'paid' : 'pending',
+        createdAt: new Date().toISOString()
+      };
+      db.ref("orders/" + id).set(newOrder).then(() => {
+        closeAddOrderModal();
+        loadOrders();
+      });
+    }
 
-  if (!name || isNaN(total)) {
-    alert("Vui lòng nhập đầy đủ thông tin đơn hàng.");
-    return;
-  }
-
-  const id = "DH" + Date.now();
-  const newOrder = {
-    id,
-    customer: { name },
-    total,
-    status,
-    createdAt: new Date().toISOString(),
-    items: []
-  };
-
-  db.ref("orders/" + id).set(newOrder).then(() => {
-    alert("✅ Đã tạo đơn hàng.");
-    closeModal();
     loadOrders();
-  });
-}
-
-function updateStatus(id, newStatus) {
-  db.ref("orders/" + id).update({ status: newStatus }).then(() => {
-    console.log(`✅ Đã cập nhật trạng thái đơn ${id} → ${newStatus}`);
-  });
-}
-
-</script>
-
+  </script>
 </body>
 </html>
