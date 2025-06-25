@@ -14,6 +14,15 @@
     h2 {
       margin-bottom: 20px;
     }
+    .filter-section {
+      margin-bottom: 20px;
+    }
+    .filter-section input, .filter-section select {
+      padding: 8px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -30,45 +39,65 @@
     th {
       background: #fafafa;
     }
-    select, input[type="date"] {
-      padding: 8px;
-      margin-right: 10px;
-    }
-    .filter-section {
-      margin-bottom: 20px;
-    }
     .btn {
-      padding: 8px 14px;
-      background: #e74c3c;
-      color: #fff;
-      border: none;
+      padding: 6px 12px;
       border-radius: 6px;
+      border: none;
       cursor: pointer;
     }
-    .btn:hover {
-      background: #c0392b;
-    }
+    .btn-detail { background: #3498db; color: #fff; }
+    .btn-update { background: #27ae60; color: #fff; margin-left: 6px; }
+    .btn:hover { opacity: 0.9; }
     .status-pending { color: orange; font-weight: bold; }
     .status-completed { color: green; font-weight: bold; }
     .status-paid { color: blue; font-weight: bold; }
+    #orderDetailModal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: auto;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-row { margin-bottom: 12px; font-size: 15px; line-height: 1.5; }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ccc;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+    }
   </style>
 </head>
 <body>
-
   <h2>📋 Danh sách đơn hàng</h2>
 
   <div class="filter-section">
-    <label>Lọc theo ngày:</label>
     <input type="date" id="filterDate">
-    <label>Trạng thái:</label>
     <select id="filterStatus">
-      <option value="">Tất cả</option>
+      <option value="">Tất cả trạng thái</option>
       <option value="pending">Đang chờ</option>
       <option value="paid">Đã thanh toán</option>
-      <option value="completed">Đã hoàn thành</option>
+      <option value="completed">Hoàn thành</option>
     </select>
+    <input type="text" id="searchInput" placeholder="Tìm theo ID, tên, ngày">
     <button onclick="loadOrders()" class="btn">Lọc</button>
-    <button onclick="openAddOrderModal()" class="btn" style="margin-left: auto; float: right;">➕ Thêm đơn</button>
   </div>
 
   <table>
@@ -76,30 +105,20 @@
       <tr>
         <th>Mã đơn</th>
         <th>Tên khách</th>
-        <th>Địa chỉ</th>
-        <th>SDT</th>
-        <th>Phương thức</th>
+        <th>Tổng tiền</th>
         <th>Trạng thái</th>
         <th>Ngày tạo</th>
-        <th>Hành động</th>
+        <th>Thao tác</th>
       </tr>
     </thead>
     <tbody id="orderTableBody"></tbody>
   </table>
 
-  <!-- Modal Thêm đơn hàng -->
-  <div id="addOrderModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:20px; border-radius:8px; width:400px;">
-      <h3>➕ Thêm đơn hàng</h3>
-      <input id="newName" placeholder="Họ tên" style="width:100%; margin-bottom:10px">
-      <input id="newAddress" placeholder="Địa chỉ" style="width:100%; margin-bottom:10px">
-      <input id="newPhone" placeholder="Số điện thoại" style="width:100%; margin-bottom:10px">
-      <select id="newPayment" style="width:100%; margin-bottom:10px">
-        <option value="cod">Thanh toán COD</option>
-        <option value="bank">Chuyển khoản</option>
-      </select>
-      <button class="btn" onclick="saveNewOrder()">Lưu đơn</button>
-      <button class="btn" style="background:#aaa; margin-left:10px" onclick="closeAddOrderModal()">Đóng</button>
+  <div id="orderDetailModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeOrderDetail()">Đóng</button>
+      <h3>📄 Chi tiết đơn hàng</h3>
+      <div id="orderDetailBody"></div>
     </div>
   </div>
 
@@ -109,9 +128,8 @@
     const firebaseConfig = {
       apiKey: "AIzaSyCR6ChodbxTFeMqVEfc37LGMZn0sRKyl-k",
       authDomain: "loichucyeuthuong18.firebaseapp.com",
-      databaseURL: "https://loichucyeuthuong18-default-rtdb.firebaseio.com",
       projectId: "loichucyeuthuong18",
-      storageBucket: "loichucyeuthuong18.appspot.com",
+      storageBucket: "loichucyeuthuong18.firebasestorage.app",
       messagingSenderId: "434140825017",
       appId: "1:434140825017:web:13deda5e05e22fe2f76268"
     };
@@ -120,75 +138,77 @@
 
     function formatDate(iso) {
       const d = new Date(iso);
-      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+      return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN');
     }
 
     function loadOrders() {
-      const dateFilter = document.getElementById("filterDate").value;
-      const statusFilter = document.getElementById("filterStatus").value;
+      const dateVal = document.getElementById("filterDate").value;
+      const statusVal = document.getElementById("filterStatus").value;
+      const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+
       db.ref("orders").once("value").then(snapshot => {
         const tbody = document.getElementById("orderTableBody");
         tbody.innerHTML = "";
+
         snapshot.forEach(child => {
           const o = child.val();
-          const orderDate = new Date(o.createdAt);
-          const selectedDate = dateFilter ? new Date(dateFilter) : null;
+          const created = new Date(o.createdAt);
+          const searchMatch = o.id.toLowerCase().includes(keyword) ||
+            o.customer?.name?.toLowerCase().includes(keyword) ||
+            created.toLocaleDateString('vi-VN').includes(keyword);
 
-          if (selectedDate && orderDate.toDateString() !== selectedDate.toDateString()) return;
-          if (statusFilter && o.status !== statusFilter) return;
+          if (dateVal && created.toISOString().split('T')[0] !== dateVal) return;
+          if (statusVal && o.status !== statusVal) return;
+          if (keyword && !searchMatch) return;
 
-          const statusText =
-            o.status === 'completed' ? 'Đã hoàn thành'
-            : o.status === 'paid' ? 'Đã thanh toán'
-            : 'Đang chờ';
+          const statusText = o.status === 'completed' ? 'Hoàn thành' : o.status === 'paid' ? 'Đã thanh toán' : 'Đang chờ';
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${o.id}</td>
-            <td>${o.customer.name}</td>
-            <td>${o.customer.address}</td>
-            <td>${o.customer.phone}</td>
-            <td>${o.customer.payment}</td>
+            <td>${o.customer?.name || ''}</td>
+            <td>${(o.total || 0).toLocaleString()} đ</td>
             <td class="status-${o.status}">${statusText}</td>
             <td>${formatDate(o.createdAt)}</td>
-            <td><button class="btn" onclick="markAsCompleted('${o.id}')">✔ Hoàn tất</button></td>
+            <td>
+              <button class="btn btn-detail" onclick="showOrderDetail('${o.id}')">Chi tiết</button>
+              <button class="btn btn-update" onclick="updateStatus('${o.id}')">Cập nhật</button>
+            </td>
           `;
           tbody.appendChild(tr);
         });
       });
     }
 
-    function markAsCompleted(orderId) {
-      db.ref("orders/" + orderId).update({ status: "completed" }).then(loadOrders);
-    }
+    function showOrderDetail(orderId) {
+      db.ref("orders/" + orderId).once("value").then(snapshot => {
+        const o = snapshot.val();
+        const item = o.items?.[0] || {};
+        const statusText = o.status === 'completed' ? 'Hoàn thành' : o.status === 'paid' ? 'Đã thanh toán' : 'Đang chờ';
 
-    function openAddOrderModal() {
-      document.getElementById("addOrderModal").style.display = "flex";
-    }
-    function closeAddOrderModal() {
-      document.getElementById("addOrderModal").style.display = "none";
-    }
-
-    function saveNewOrder() {
-      const name = document.getElementById("newName").value.trim();
-      const address = document.getElementById("newAddress").value.trim();
-      const phone = document.getElementById("newPhone").value.trim();
-      const payment = document.getElementById("newPayment").value;
-      if (!name || !address || !phone || !payment) return alert("Điền đầy đủ thông tin!");
-
-      const id = "OD" + Date.now();
-      const newOrder = {
-        id,
-        items: [],
-        customer: { name, address, phone, payment },
-        total: 0,
-        status: payment === 'bank' ? 'paid' : 'pending',
-        createdAt: new Date().toISOString()
-      };
-      db.ref("orders/" + id).set(newOrder).then(() => {
-        closeAddOrderModal();
-        loadOrders();
+        const html = `
+          <div class="modal-row"><strong>Mã đơn:</strong> ${o.id}</div>
+          <div class="modal-row"><strong>Họ tên:</strong> ${o.customer?.name || ''}</div>
+          <div class="modal-row"><strong>Email:</strong> ${o.customer?.contact || ''}</div>
+          <div class="modal-row"><strong>Địa chỉ:</strong> ${o.customer?.address || ''}</div>
+          <div class="modal-row"><strong>SDT:</strong> ${o.customer?.phone || ''}</div>
+          <div class="modal-row"><strong>Sản phẩm:</strong> ${item.title || ''}</div>
+          <div class="modal-row"><strong>Size:</strong> ${item.size || ''}</div>
+          <div class="modal-row"><strong>Số lượng:</strong> ${item.quantity || 0}</div>
+          <div class="modal-row"><strong>Tổng tiền:</strong> ${o.total?.toLocaleString() || 0} đ</div>
+          <div class="modal-row"><strong>Trạng thái:</strong> ${statusText}</div>
+        `;
+        document.getElementById("orderDetailBody").innerHTML = html;
+        document.getElementById("orderDetailModal").style.display = "flex";
       });
+    }
+
+    function updateStatus(orderId) {
+      db.ref("orders/" + orderId).update({ status: "completed" }).then(() => loadOrders());
+    }
+
+    function closeOrderDetail() {
+      document.getElementById("orderDetailModal").style.display = "none";
     }
 
     loadOrders();
