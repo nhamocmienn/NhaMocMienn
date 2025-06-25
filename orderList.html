@@ -157,6 +157,9 @@
             o.customer?.name?.toLowerCase().includes(keyword) ||
             created.toLocaleDateString('vi-VN').includes(keyword);
 
+          // ✅ Bỏ qua nếu là bank và trạng thái vẫn pending
+          if (o.customer?.payment === 'bank' && o.status === 'pending') return;
+
           if (dateVal && created.toISOString().split('T')[0] !== dateVal) return;
           if (statusVal && o.status !== statusVal) return;
           if (keyword && !searchMatch) return;
