@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Danh sách đơn hàng</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600&display=swap" rel="stylesheet">
+  
   <style>
     body {
       font-family: 'Be Vietnam Pro', sans-serif;
@@ -83,9 +84,22 @@
       cursor: pointer;
       border: none;
     }
+    #editDateModal .modal-content {
+  max-width: 400px;
+  text-align: center;
+}
+
   </style>
 </head>
 <body>
+  <nav class="nav-menu">
+        <ul>
+          <li><a href="productList.html">Danh sách sản phẩm</a></li>
+          <li><a href="addProduct.html">Thêm sản phẩm</a></li>
+          <li><a href="list.html">Danh sách lời chúc</a></li>
+          <li><a href="orderList.html">Danh sách order</a></li>
+        </ul>
+      </nav>
   <h2>📋 Danh sách đơn hàng</h2>
 
   <div class="filter-section">
@@ -121,6 +135,19 @@
       <div id="orderDetailBody"></div>
     </div>
   </div>
+
+  <div id="editDateModal" style="display: none; position: fixed; z-index: 1000; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px;">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeEditDateModal()">Đóng</button>
+    <h3>📅 Sửa ngày tạo đơn hàng</h3>
+    <div class="modal-row">
+      <label for="newCreatedAt">Ngày & giờ mới:</label><br>
+      <input type="datetime-local" id="newCreatedAt" style="padding: 8px; margin-top: 8px; width: 100%; border: 1px solid #ccc; border-radius: 6px;">
+    </div>
+    <button class="btn btn-update" onclick="saveNewCreatedAt()">Lưu thay đổi</button>
+  </div>
+</div>
+
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -177,6 +204,8 @@
             <td>
               <button class="btn btn-detail" onclick="showOrderDetail('${o.id}')">Chi tiết</button>
               <button class="btn btn-update" onclick="updateStatus('${o.id}')">Cập nhật</button>
+
+              <button class="btn btn-update" onclick="openEditDateModal('${o.id}', '${o.createdAt}')">Sửa ngày</button>
             </td>
           `;
           tbody.appendChild(tr);
@@ -216,6 +245,52 @@
     }
 
     loadOrders();
+
+
+    //raw
+   let editingOrderId = null;
+
+function openEditDateModal(orderId, currentDate) {
+  editingOrderId = orderId;
+  const input = document.getElementById("newCreatedAt");
+  input.value = formatDateForInput(currentDate);
+  document.getElementById("editDateModal").style.display = "flex";
+}
+
+function closeEditDateModal() {
+  document.getElementById("editDateModal").style.display = "none";
+  editingOrderId = null;
+}
+
+function saveNewCreatedAt() {
+  const input = document.getElementById("newCreatedAt").value;
+  if (!input) {
+    alert("Vui lòng chọn ngày giờ hợp lệ.");
+    return;
+  }
+  const isoDate = new Date(input).toISOString();
+  db.ref("orders/" + editingOrderId).update({ createdAt: isoDate })
+    .then(() => {
+      closeEditDateModal();
+      loadOrders();
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Có lỗi khi cập nhật ngày tạo.");
+    });
+}
+
+function formatDateForInput(isoDate) {
+  const d = new Date(isoDate);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
+
+
   </script>
 </body>
 </html>
