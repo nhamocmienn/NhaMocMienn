@@ -186,16 +186,20 @@
           });
         }
 
-        li.innerHTML = `
-          <b>STT ${count}:</b> <b>${data.sender}</b> gửi đến <b>${data.receiver}</b><br>
-          <i>Liên hệ:</i> <span class="contact-link">${data.contact}</span>
-          <button onclick="copyToClipboard('${data.contact}', this)">📋 Copy</button><br><br>
-          <button onclick="showMessage(this, \`${escapeHtml(data.message)}\`)">📨 Xem lời nhắn</button>
-          ${fileButtonsHTML}
-          <button onclick="openEditDateModal('${child.key}', '${data.timestamp}')">📅 Sửa ngày</button>
-          <div class="media-container"></div>
-          <div class="timestamp">🕒 ${new Date(data.timestamp).toLocaleString()}</div>
-        `;
+       li.innerHTML = `
+  <b>STT ${count}:</b> <b>${data.sender}</b> gửi đến <b>${data.receiver}</b><br>
+  <i>Liên hệ người nhận:</i> <span class="contact-link">${data.contact}</span>
+  <button onclick="copyToClipboard('${data.contact}', this)">📋 Copy</button><br>
+  <i>Liên hệ người gửi:</i> <span class="contact-link">${data.senderContact || '(không có)'}</span>
+  ${data.senderContact ? `<button onclick="copyToClipboard('${data.senderContact}', this)">📋 Copy</button>` : ''}
+  <br><br>
+  <button onclick="showMessage(this, \`${escapeHtml(data.message)}\`)">📨 Xem lời nhắn</button>
+  ${fileButtonsHTML}
+  <button onclick="openEditDateModal('${child.key}', '${data.timestamp}')">📅 Sửa ngày</button>
+  <div class="media-container"></div>
+  <div class="timestamp">🕒 ${new Date(data.timestamp).toLocaleString()}</div>
+`;
+
 
         messageList.appendChild(li);
       });
